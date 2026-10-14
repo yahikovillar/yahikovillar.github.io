@@ -3,443 +3,466 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Itinerario Visual: Santiago de Chile 2026</title>
+  <title>Itinerario Santiago de Chile 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #0f172a; color: #f8fafc; }
-    .day-tab.active { background: linear-gradient(135deg, #e11d48, #be123c); color: white; border-color: #fb7185; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); }
-    .transit-line { border-left: 3px dashed #64748b; }
-    .card-glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .day-tab {
+      background-color: #ffffff;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+    .day-tab.active {
+      background-color: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
+    .transit-step {
+      border-left: 2px dashed #cbd5e1;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.875rem;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+    .badge-time {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.375rem;
+    }
+    .btn-map {
+      background-color: #f8fafc;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.375rem;
+      transition: all 0.15s;
+    }
+    .btn-map:hover {
+      background-color: #e2e8f0;
+    }
   </style>
 </head>
 <body class="pb-16">
 
-  <!-- Header -->
-  <header class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
+  <!-- Header Minimalista -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
       <div>
-        <div class="flex items-center gap-2">
-          <span class="text-2xl">🇨🇱</span>
-          <h1 class="text-lg md:text-xl font-bold tracking-tight text-white">Ruta Santiago & Graduación UC</h1>
-        </div>
-        <p class="text-xs text-slate-400">27 al 30 Oct 2026 • Nicko & Sandy + César & Liz</p>
+        <h1 class="text-base md:text-lg font-bold text-slate-900">🇨🇱 Itinerario Santiago de Chile</h1>
+        <p class="text-xs text-slate-500">27 al 30 Oct 2026 • Nicko & Sandy + César & Liz</p>
       </div>
       <a href="https://www.google.com/maps/search/?api=1&query=Ibis+Budget+Santiago+Providencia" target="_blank" 
-         class="bg-slate-800 hover:bg-slate-700 text-rose-400 border border-slate-700 text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-hotel"></i> Hotel Base
+         class="btn-map flex items-center gap-1.5 py-1.5 px-3">
+        <i class="fa-solid fa-location-dot text-slate-600"></i> Hotel Ibis Budget
       </a>
     </div>
 
-    <!-- Navegación por Días -->
+    <!-- Pestañas de Días -->
     <div class="max-w-3xl mx-auto px-4 pb-3 pt-1 grid grid-cols-4 gap-2">
-      <button onclick="showDay(1)" id="tab-1" class="day-tab active rounded-xl py-2 px-1 text-center border border-slate-700 bg-slate-800/70 transition">
-        <div class="text-[10px] uppercase tracking-wider opacity-80">Mar 27</div>
-        <div class="font-bold text-xs md:text-sm">✈️ Ida + VIP</div>
+      <button onclick="showDay(1)" id="tab-1" class="day-tab active rounded-lg py-2 px-1 text-center transition">
+        <div class="text-[10px] uppercase tracking-wider opacity-75">Mar 27</div>
+        <div class="font-semibold text-xs md:text-sm">Llegada</div>
       </button>
-      <button onclick="showDay(2)" id="tab-2" class="day-tab rounded-xl py-2 px-1 text-center border border-slate-700 bg-slate-800/70 transition">
-        <div class="text-[10px] uppercase tracking-wider opacity-80">Mié 28</div>
-        <div class="font-bold text-xs md:text-sm">🍷 Viña+Safari</div>
+      <button onclick="showDay(2)" id="tab-2" class="day-tab rounded-lg py-2 px-1 text-center transition">
+        <div class="text-[10px] uppercase tracking-wider opacity-75">Mié 28</div>
+        <div class="font-semibold text-xs md:text-sm">Viña + Safari</div>
       </button>
-      <button onclick="showDay(3)" id="tab-3" class="day-tab rounded-xl py-2 px-1 text-center border border-slate-700 bg-slate-800/70 transition">
-        <div class="text-[10px] uppercase tracking-wider opacity-80">Jue 29</div>
-        <div class="font-bold text-xs md:text-sm">🎓 UC / ⚽ Colo</div>
+      <button onclick="showDay(3)" id="tab-3" class="day-tab rounded-lg py-2 px-1 text-center transition">
+        <div class="text-[10px] uppercase tracking-wider opacity-75">Jue 29</div>
+        <div class="font-semibold text-xs md:text-sm">Grado / Tour</div>
       </button>
-      <button onclick="showDay(4)" id="tab-4" class="day-tab rounded-xl py-2 px-1 text-center border border-slate-700 bg-slate-800/70 transition">
-        <div class="text-[10px] uppercase tracking-wider opacity-80">Vie 30</div>
-        <div class="font-bold text-xs md:text-sm">🛫 Sky VIP</div>
+      <button onclick="showDay(4)" id="tab-4" class="day-tab rounded-lg py-2 px-1 text-center transition">
+        <div class="text-[10px] uppercase tracking-wider opacity-75">Vie 30</div>
+        <div class="font-semibold text-xs md:text-sm">Retorno</div>
       </button>
     </div>
   </header>
 
-  <main class="max-w-3xl mx-auto px-4 pt-6">
+  <main class="max-w-3xl mx-auto px-4 pt-5">
 
-    <!-- ==================== DÍA 1: MARTES 27 (SALIDA LIMA POR PAREJAS) ==================== -->
-    <section id="day-1" class="day-content space-y-2">
-      <div class="bg-blue-950/50 border border-blue-800/60 rounded-xl p-3 mb-3 text-xs text-blue-200">
-        <i class="fa-solid fa-plane-up mr-1"></i> <strong>Vuelos de Ida (3h antes en Lima para Sala VIP):</strong> César & Liz salen 12:00 PM (llegan 17:40 SCL) y Nicko & Sandy salen 12:30 PM (llegan 18:00 SCL). ¡Aterrizan con solo 20 minutos de diferencia!
+    <!-- ==================== DÍA 1: MARTES 27 ==================== -->
+    <section id="day-1" class="day-content space-y-2.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600">
+        <i class="fa-regular fa-clock mr-1"></i> <strong>Nota de horario:</strong> Llegada 3 horas antes al aeropuerto de Lima para desayunar en la Sala VIP. Ambos vuelos aterrizan en Santiago con solo 20 minutos de diferencia.
       </div>
 
-      <!-- BIFURCACIÓN VUELOS DE IDA EN LIMA -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <!-- Pareja 1: Nicko y Sandy -->
-        <div class="border-2 border-rose-500/60 bg-rose-950/20 rounded-2xl p-4 space-y-2.5">
-          <div class="flex items-center justify-between border-b border-rose-500/30 pb-2">
-            <h4 class="font-bold text-rose-300 text-sm">💑 Nicko & Sandy (12:30 PM)</h4>
-            <span class="text-[10px] bg-rose-500/30 text-rose-200 px-2 py-0.5 rounded">LATAM LA 651</span>
+      <!-- Vuelos de Ida en Paralelo -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+        <!-- Nicko y Sandy -->
+        <div class="card p-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+            <h4 class="font-bold text-slate-800 text-sm">✈️ Nicko & Sandy (12:30)</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LA 651</span>
           </div>
-          <ul class="text-xs text-slate-300 space-y-2">
-            <li>🚕 <strong>08:30 – 09:30 (Hora Perú):</strong> Salida de casa en taxi hacia el Aeropuerto Jorge Chávez.</li>
-            <li>🛂 <strong>09:30 – 10:15 (3h antes):</strong> Llegada al aeropuerto, bag drop, seguridad y migraciones.</li>
-            <li class="text-amber-300">🥂 <strong>10:15 – 11:50:</strong> <strong>Sala VIP Lima</strong> (Desayuno buffet y encuentro con César y Liz).</li>
-            <li>✈️ <strong>12:30 PM:</strong> Despegue hacia Santiago (3h 30m).</li>
-            <li class="text-emerald-300">🛬 <strong>18:00 (Hora Chile):</strong> Aterrizaje en SCL.</li>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li><strong>08:30 – 09:30 (Perú):</strong> Taxi desde casa al Aeropuerto Jorge Chávez.</li>
+            <li><strong>09:30 – 10:15 (3h antes):</strong> Entrega de equipaje y migraciones.</li>
+            <li><strong>10:15 – 11:50:</strong> <strong>Sala VIP Lima</strong> (Desayuno buffet con César y Liz).</li>
+            <li><strong>12:30:</strong> Despegue hacia Santiago.</li>
+            <li><strong>18:00 (Hora Chile):</strong> Aterrizaje en Aeropuerto SCL.</li>
           </ul>
         </div>
 
-        <!-- Pareja 2: César y Liz -->
-        <div class="border-2 border-sky-500/60 bg-sky-950/20 rounded-2xl p-4 space-y-2.5">
-          <div class="flex items-center justify-between border-b border-sky-500/30 pb-2">
-            <h4 class="font-bold text-sky-300 text-sm">💑 César & Liz (12:00 PM)</h4>
-            <span class="text-[10px] bg-sky-500/30 text-sky-200 px-2 py-0.5 rounded">LATAM Directo</span>
+        <!-- César y Liz -->
+        <div class="card p-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+            <h4 class="font-bold text-slate-800 text-sm">✈️ César & Liz (12:00)</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LATAM</span>
           </div>
-          <ul class="text-xs text-slate-300 space-y-2">
-            <li>🚕 <strong>08:00 – 09:00 (Hora Perú):</strong> Salida de casa en taxi hacia el Aeropuerto Jorge Chávez.</li>
-            <li>🛂 <strong>09:00 – 09:45 (3h antes):</strong> Check-in, seguridad y control migratorio.</li>
-            <li class="text-amber-300">🥂 <strong>09:45 – 11:20:</strong> <strong>Sala VIP Lima</strong> (Desayuno buffet y relax).</li>
-            <li>✈️ <strong>12:00 PM:</strong> Despegue hacia Santiago (3h 40m).</li>
-            <li class="text-emerald-300">🛬 <strong>17:40 (Hora Chile):</strong> Aterrizaje en SCL.</li>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li><strong>08:00 – 09:00 (Perú):</strong> Taxi desde casa al Aeropuerto Jorge Chávez.</li>
+            <li><strong>09:00 – 09:45 (3h antes):</strong> Check-in de equipaje y migraciones.</li>
+            <li><strong>09:45 – 11:20:</strong> <strong>Sala VIP Lima</strong> (Desayuno buffet y descanso).</li>
+            <li><strong>12:00:</strong> Despegue hacia Santiago.</li>
+            <li><strong>17:40 (Hora Chile):</strong> Aterrizaje en Aeropuerto SCL.</li>
           </ul>
         </div>
       </div>
 
-      <!-- Punto de reencuentro en SCL -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg mt-3">
-        <div class="flex justify-between items-start">
-          <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-1 rounded-md">17:40 – 19:00 (Hora Chile)</span>
-          <span class="text-xs text-slate-400">Aeropuerto SCL (Pudahuel)</span>
+      <!-- Encuentro en SCL -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">17:40 – 19:00 (Hora Chile)</span>
+          <span class="text-xs text-slate-400">Aeropuerto SCL</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🤝 Control PDI, Maletas y Encuentro de los 4</h3>
-        <p class="text-xs text-slate-300 mt-1">Con solo 20 min de diferencia entre aterrizajes (17:40 y 18:00), salen juntos de las cintas de equipaje para compartir una van/taxi al hotel.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Control PDI, Maletas y Encuentro de los 4</h3>
+        <p class="text-xs text-slate-600 mt-1">Encuentro saliendo de las cintas de equipaje para tomar un solo taxi o van hacia el hotel.</p>
       </div>
 
-      <!-- Tránsito Aeropuerto a Hotel -->
-      <div class="ml-6 pl-6 py-3 transit-line flex flex-wrap items-center justify-between gap-2 text-xs text-amber-300 bg-slate-900/60 rounded-r-xl pr-3">
-        <div><i class="fa-solid fa-taxi mr-2"></i><strong>19:00 – 19:45 (45 min):</strong> Taxi / Van oficial desde SCL al Hotel por Costanera Norte</div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Aeropuerto+Arturo+Merino+Benitez+Santiago&destination=Ibis+Budget+Santiago+Providencia&travelmode=driving" target="_blank" class="bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 rounded text-[11px] text-amber-200">
-          <i class="fa-solid fa-route mr-1"></i>Ver Mapa Ruta
+      <!-- Tránsito a Hotel -->
+      <div class="ml-5 pl-4 py-2 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+        <div><i class="fa-solid fa-car mr-1.5 text-slate-400"></i><strong>19:00 – 19:45 (45 min):</strong> Taxi / Uber del Aeropuerto al Hotel</div>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Aeropuerto+Arturo+Merino+Benitez+Santiago&destination=Ibis+Budget+Santiago+Providencia&travelmode=driving" target="_blank" class="btn-map">
+          Ver Ruta
         </a>
       </div>
 
-      <!-- Hotel Alistarse -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg">
-        <div class="flex justify-between items-start">
-          <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-md">19:45 – 20:20</span>
+      <!-- Hotel Check-in -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">19:45 – 20:20</span>
           <span class="text-xs text-slate-400">Av. Manuel Montt 240</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🏨 Check-in en Ibis Budget Providencia y Alistarse</h3>
-        <p class="text-xs text-slate-300 mt-1">Dejar maletas en las habitaciones y alistarse (35 min) para salir a Costanera / Cena.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Check-in en Hotel Ibis Budget Providencia</h3>
+        <p class="text-xs text-slate-600 mt-1">Dejar maletas en las habitaciones y alistarse rápido para salir a cenar.</p>
       </div>
 
-      <!-- Tránsito Hotel a Costanera -->
-      <div class="ml-6 pl-6 py-3 transit-line flex flex-wrap items-center justify-between gap-2 text-xs text-sky-300 bg-slate-900/60 rounded-r-xl pr-3">
-        <div><i class="fa-solid fa-train-subway mr-2"></i><strong>20:20 – 20:35:</strong> Metro L1 a Cenco Costanera (10 min) o Uber a Casacostanera (12 min)</div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Cenco+Costanera+Santiago&travelmode=transit" target="_blank" class="bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 rounded text-[11px] text-sky-200">
-          <i class="fa-solid fa-map-location-dot mr-1"></i>Ruta Costanera
+      <!-- Tránsito a Costanera -->
+      <div class="ml-5 pl-4 py-2 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+        <div><i class="fa-solid fa-train-subway mr-1.5 text-slate-400"></i><strong>20:20 – 20:30 (10 min):</strong> Metro Línea 1 (Manuel Montt ➔ Tobalaba / Los Leones)</div>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Cenco+Costanera+Santiago&travelmode=transit" target="_blank" class="btn-map">
+          Ver Ruta Metro
         </a>
       </div>
 
-      <!-- Costanera + Fukasawa -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-rose-500">
-        <div class="flex justify-between items-start">
-          <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold px-2.5 py-1 rounded-md">20:35 – 23:00</span>
-          <span class="text-xs text-slate-400">Providencia / Vitacura</span>
+      <!-- Cenco Costanera -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">20:30 – 22:30</span>
+          <span class="text-xs text-slate-400">Providencia</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🛍️ Paseo en Cenco Costanera & 🍣 Cena en Fukasawa (Opción 1)</h3>
-        <div class="mt-2 space-y-2 text-xs text-slate-300">
-          <p>• <strong>Paseo inicial:</strong> Visita a <strong>Cenco Costanera</strong> (tiendas cierran ~20:30/21:00, zona restaurantes hasta más tarde).</p>
-          <div class="bg-rose-950/40 border border-rose-500/40 p-2.5 rounded-lg text-rose-200">
-            🍣 <strong>Opción Cena en Fukasawa (Casacostanera - Av. Nueva Costanera 3900, Piso 4):</strong> Cierra a las <strong>23:00 hrs</strong>. Si salen con buen tiempo del hotel, van directo en Uber (12 min). <em>*Si prefieren algo más relajado el Día 1, Fukasawa pasa automáticamente al Miércoles o Jueves por la noche.</em>
-            <div class="mt-2">
-              <a href="https://www.google.com/maps/dir/?api=1&origin=Cenco+Costanera+Santiago&destination=Fukasawa+Casacostanera+Vitacura&travelmode=driving" target="_blank" class="inline-block bg-rose-500/30 border border-rose-400/50 px-2.5 py-1 rounded text-[11px] text-white">
-                <i class="fa-solid fa-location-dot mr-1"></i>Mapa a Fukasawa
-              </a>
-            </div>
-          </div>
-        </div>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Paseo y Cena de Bienvenida en Cenco Costanera</h3>
+        <p class="text-xs text-slate-600 mt-1">Recorrido por el mall y primera cena tranquila en la zona de restaurantes de Costanera o alrededores de Providencia.</p>
       </div>
     </section>
 
-    <!-- ==================== DÍA 2: MIÉRCOLES 28 (VIÑA + PARQUE SAFARI) ==================== -->
-    <section id="day-2" class="day-content hidden space-y-2">
-      <div class="bg-emerald-950/50 border border-emerald-800/60 rounded-xl p-3 mb-3 text-xs text-emerald-200">
-        <i class="fa-solid fa-mug-hot mr-1"></i> <strong>Desayuno #1 (En el Hotel):</strong> Hoy conviene desayunar en el <strong>Buffet del Ibis Budget</strong> a las 07:45 AM para salir puntuales a las 08:45 AM hacia Pirque (ya que las cafeterías de la cuadra abren 08:30 AM).
+    <!-- ==================== DÍA 2: MIÉRCOLES 28 ==================== -->
+    <section id="day-2" class="day-content hidden space-y-2.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600">
+        <i class="fa-solid fa-train-subway mr-1"></i> <strong>Ahorro en transporte a la Viña:</strong> Ir en tren urbano (Metro L1 + L4 hasta Plaza de Puente Alto) + taxi corto de 8 min cuesta ~$8,500 CLP en total para los 4 (~70% más barato que un taxi directo desde Providencia).
       </div>
 
-      <!-- Desayuno 1: Buffet Hotel -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-amber-400">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">07:45 – 08:40</span>
-          <span class="text-xs text-amber-300 font-semibold">Desayuno Día 1: Hotel</span>
+      <!-- Desayuno 1 -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">07:30 – 08:25</span>
+          <span class="text-xs text-slate-500 font-medium">Desayuno #1: En el Hotel</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🥐 Desayuno Buffet en Hotel Ibis Budget</h3>
-        <p class="text-xs text-slate-300 mt-1">Bajan directo al comedor del hotel sin perder tiempo en la calle antes de pedir el taxi a la viña.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Desayuno Buffet en Hotel Ibis Budget</h3>
+        <p class="text-xs text-slate-600 mt-1">Desayuno temprano en el salón del hotel para salir puntuales a las 08:30 AM hacia el Metro.</p>
       </div>
 
-      <!-- Tránsito Hotel a Viña -->
-      <div class="ml-6 pl-6 py-3 transit-line flex flex-wrap items-center justify-between gap-2 text-xs text-amber-300 bg-slate-900/60 rounded-r-xl pr-3">
-        <div><i class="fa-solid fa-taxi mr-2"></i><strong>08:45 – 09:35 (50 min):</strong> Uber / Taxi hacia Viña Concha y Toro (Pirque)</div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Vina+Concha+y+Toro+Pirque&travelmode=driving" target="_blank" class="bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 rounded text-[11px] text-amber-200">
-          <i class="fa-solid fa-route mr-1"></i>Ver Mapa Ruta
+      <!-- Tránsito en Tren/Metro a Viña -->
+      <div class="ml-5 pl-4 py-2.5 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+        <div>
+          <i class="fa-solid fa-train mr-1.5 text-slate-400"></i><strong>08:30 – 09:35 (1h 05m):</strong> Metro L1 (Manuel Montt ➔ Tobalaba) + Tren L4 hasta <strong>Plaza de Puente Alto</strong> (~45 min) + Taxi corto a la Viña (8 min).
+        </div>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Vina+Concha+y+Toro+Pirque&travelmode=transit" target="_blank" class="btn-map">
+          Ver Ruta Tren
         </a>
       </div>
 
       <!-- Viña Concha y Toro -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-rose-500">
-        <div class="flex justify-between items-start">
-          <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold px-2.5 py-1 rounded-md">09:50 – 12:35 (Hora Chile)</span>
-          <span class="text-xs text-rose-300 font-semibold">Reserva: CV-T149264268</span>
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">09:50 – 12:35 (Confirmado)</span>
+          <span class="text-xs text-slate-500 font-medium">Reserva: CV-T149264268</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🍷 Viña Concha y Toro (Visita Guiada Premium + Tasting Marques)</h3>
-        <p class="text-xs text-slate-300 mt-1">Recorrido por jardines de Pirque, bodega Casillero del Diablo y degustación guiada Marques de Casa Concha.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Viña Concha y Toro (Tour Guiado Premium + Tasting Marques)</h3>
+        <p class="text-xs text-slate-600 mt-1">Jardines históricos de Pirque, bodega del Casillero del Diablo y degustación guiada Marques de Casa Concha.</p>
       </div>
 
       <!-- Tránsito Viña a Parque Safari -->
-      <div class="ml-6 pl-6 py-3 transit-line flex flex-wrap items-center justify-between gap-2 text-xs text-amber-300 bg-slate-900/60 rounded-r-xl pr-3">
+      <div class="ml-5 pl-4 py-2.5 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
         <div>
-          <i class="fa-solid fa-car-side mr-2"></i><strong>12:40 – 13:50 (1h 10m):</strong> Traslado directo de Pirque a Parque Safari (Rancagua)
+          <i class="fa-solid fa-car mr-1.5 text-slate-400"></i><strong>12:40 – 13:50 (1h 10m):</strong> Traslado directo de Pirque a Parque Safari (Rancagua)
+          <div class="text-[11px] text-slate-500 mt-0.5">*Aquí sí conviene Uber directo entre los 4 por Acceso Sur, o taxi a Est. San Bernardo + Tren EFE a Rancagua.</div>
         </div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Vina+Concha+y+Toro+Pirque&destination=Parque+Safari+Rancagua+Chile&travelmode=driving" target="_blank" class="bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 rounded text-[11px] text-amber-200">
-          <i class="fa-solid fa-route mr-1"></i>Ruta Pirque ➔ Safari
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Vina+Concha+y+Toro+Pirque&destination=Parque+Safari+Rancagua+Chile&travelmode=driving" target="_blank" class="btn-map">
+          Ver Ruta Sur
         </a>
       </div>
 
-      <!-- Parque Safari Almuerzo + Cola + Tours -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-amber-500">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">13:50 – 16:40</span>
+      <!-- Parque Safari -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">13:50 – 16:40</span>
           <span class="text-xs text-slate-400">Rancagua (Cierra 17:00)</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🦁 Parque Safari Chile: Almuerzo + Cola (20m) + Recorridos</h3>
-        <div class="mt-2 space-y-2 text-xs text-slate-300">
-          <div class="bg-slate-900/70 p-2.5 rounded-lg border border-slate-700">
-            🍽️ <strong>13:50 – 14:35 (45 min) | Tickets + Almuerzo:</strong> Comprar los tickets apenas llegan y almorzar en el restaurante del parque.
-          </div>
-          <div class="bg-amber-950/40 p-2.5 rounded-lg border border-amber-500/40 text-amber-200">
-            ⏳ <strong>14:35 – 14:55 (20 min) | Cola Safari Felinos:</strong> Fila de espera considerada para subir al vehículo enrejado.
-          </div>
-          <div class="bg-slate-900/70 p-2.5 rounded-lg border border-slate-700">
-            🐅 <strong>14:55 – 16:35 (1h 40m) | Safari Felinos + Herbívoros:</strong> Experiencia en jaula con leones y tigres + circuito de herbívoros.
-          </div>
-        </div>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Parque Safari Chile: Almuerzo + Cola + Safaris</h3>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1.5">
+          <li>• <strong>13:50 – 14:35 (45 min):</strong> Compra de tickets en boletería al llegar y <strong>almuerzo</strong> en el restaurante del parque.</li>
+          <li>• <strong>14:35 – 14:55 (20 min):</strong> Tiempo estimado de <strong>cola de embarque</strong> para el Safari Felinos.</li>
+          <li>• <strong>14:55 – 16:35 (1h 40m):</strong> Recorrido en vehículo enrejado por <strong>Safari Grandes Felinos</strong> (leones y tigres) + <strong>Safari Herbívoros</strong>.</li>
+        </ul>
       </div>
 
-      <!-- Tránsito Retorno a Santiago -->
-      <div class="ml-6 pl-6 py-3 transit-line flex flex-wrap items-center justify-between gap-2 text-xs text-sky-300 bg-slate-900/60 rounded-r-xl pr-3">
+      <!-- Retorno en Tren EFE a Santiago -->
+      <div class="ml-5 pl-4 py-2.5 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
         <div>
-          <i class="fa-solid fa-train mr-2"></i><strong>16:45 – 18:15 (1h 30m):</strong> Retorno a Santiago (Tren EFE Rancagua ➔ Estación Central + Metro L1, o Uber)
+          <i class="fa-solid fa-train mr-1.5 text-slate-400"></i><strong>16:45 – 18:15 (1h 30m):</strong> Taxi a Estación Rancagua (15m) + <strong>Tren EFE a Estación Central</strong> (1h 10m) + Metro L1 a Manuel Montt.
         </div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Parque+Safari+Rancagua&destination=Ibis+Budget+Santiago+Providencia&travelmode=transit" target="_blank" class="bg-sky-500/20 border border-sky-500/40 px-2.5 py-1 rounded text-[11px] text-sky-200">
-          <i class="fa-solid fa-map-location-dot mr-1"></i>Ver Retorno
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Parque+Safari+Rancagua&destination=Ibis+Budget+Santiago+Providencia&travelmode=transit" target="_blank" class="btn-map">
+          Ver Ruta Retorno
         </a>
       </div>
 
-      <!-- Noche Miércoles (Backup Fukasawa) -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg">
-        <div class="flex justify-between items-start">
-          <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-md">18:15 – 22:30</span>
-          <span class="text-xs text-slate-400">Providencia / Vitacura</span>
+      <!-- Noche Miércoles -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">18:15 en adelante</span>
+          <span class="text-xs text-slate-400">Providencia</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🚿 Descanso en Hotel + Cena (Opción 2 para 🍣 Fukasawa)</h3>
-        <p class="text-xs text-slate-300 mt-1">Si el martes no dio tiempo de ir a <strong>Fukasawa</strong>, hoy a las 20:15 (ya descansados y bañados) es una noche ideal para ir sin apuros.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Descanso en el Hotel y Cena Casual</h3>
+        <p class="text-xs text-slate-600 mt-1">Ducha y descanso en el hotel. Cena ligera por Manuel Montt o Barrio Italia.</p>
       </div>
     </section>
 
-    <!-- ==================== DÍA 3: JUEVES 29 (BIFURCACIÓN UC / COLO-COLO) ==================== -->
-    <section id="day-3" class="day-content hidden space-y-2">
-      <!-- Desayuno 2: Club Colombia -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-amber-400">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">08:30 – 09:30</span>
-          <span class="text-xs text-amber-300 font-semibold">Desayuno Día 2: Club Colombia</span>
+    <!-- ==================== DÍA 3: JUEVES 29 ==================== -->
+    <section id="day-3" class="day-content hidden space-y-2.5">
+      <!-- Desayuno 2 -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">08:30 – 09:30</span>
+          <span class="text-xs text-slate-500 font-medium">Desayuno #2: Frente al Hotel</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">☕ Desayuno en Club Colombia Café & Tostaduría</h3>
-        <p class="text-xs text-slate-300 mt-1">Justo frente al hotel (Manuel Montt 273). Abre a las 08:30 AM: café colombiano de especialidad, sándwiches gourmet y pastelería.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Desayuno en Club Colombia Café & Tostaduría</h3>
+        <p class="text-xs text-slate-600 mt-1">Ubicado en Manuel Montt 273 (cruzando la calle). Abre a las 08:30 AM.</p>
       </div>
 
       <!-- Cerro San Cristóbal -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg">
-        <div class="flex justify-between items-start">
-          <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-1 rounded-md">09:35 – 12:30</span>
-          <span class="text-xs text-slate-400">Mañana en Grupo</span>
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">09:35 – 12:30</span>
+          <span class="text-xs text-slate-400">Providencia</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🚡 Teleférico y Funicular Cerro San Cristóbal</h3>
-        <p class="text-xs text-slate-300 mt-1">Acceso por Estación Oasis (Pedro de Valdivia Norte, a 10 min del hotel). Vistas panorámicas de la Cordillera y mote con huesillo.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Teleférico y Funicular Cerro San Cristóbal</h3>
+        <p class="text-xs text-slate-600 mt-1">Subida por Estación Oasis (Pedro de Valdivia Norte, a 10 min del hotel), vistas de la Cordillera, Santuario de la Cumbre y mote con huesillo.</p>
       </div>
 
       <!-- Almuerzo -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">12:45 – 14:15</span>
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">12:45 – 14:00</span>
           <span class="text-xs text-slate-400">Providencia</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🍽️ Almuerzo Grupal cerca del Hotel (Manuel Montt)</h3>
-        <p class="text-xs text-slate-300 mt-1">Almuerzo práctico a pasos del hotel antes de que el grupo se divida a las 14:15.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Almuerzo Grupal en Providencia</h3>
+        <p class="text-xs text-slate-600 mt-1">Almuerzo cerca del hotel antes de dividir el grupo en dos rutas a las 14:00 hrs.</p>
       </div>
 
-      <!-- Etiqueta de Bifurcación -->
-      <div class="py-3 text-center">
-        <span class="bg-rose-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-          <i class="fa-solid fa-code-branch mr-1.5"></i>14:15 HRS — BIFURCACIÓN DE RUTAS EN PARALELO
+      <!-- Divisor Bifurcación -->
+      <div class="py-2 text-center">
+        <span class="bg-slate-800 text-white text-[11px] font-semibold px-3.5 py-1 rounded-full">
+          14:00 HRS — RUTAS EN PARALELO (GRADUACIÓN UC vs. ESTADIO + MUSEO)
         </span>
       </div>
 
-      <!-- GRID EN PARALELO: NICKO VS AMIGOS -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- BIFURCACIÓN EN 2 COLUMNAS LIMPIAS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         
-        <!-- COLUMNA 1: RUTA GRADUACIÓN UC -->
-        <div class="border-2 border-indigo-500/60 bg-indigo-950/20 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between border-b border-indigo-500/30 pb-2">
-            <h4 class="font-bold text-indigo-300 text-sm">🎓 RUTA GRADUACIÓN UC</h4>
-            <span class="text-[11px] bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded">Llegada 16:00 (1h antes)</span>
+        <!-- COLUMNA 1: GRADUACIÓN UC -->
+        <div class="card p-4 border-t-4 border-t-slate-800 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-slate-900 text-sm">🎓 Ruta Graduación UC</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Cita 16:00</span>
           </div>
 
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
-            <div class="text-xs font-bold text-indigo-300">14:15 – 15:15 (1 hora)</div>
-            <div class="text-sm font-semibold text-white mt-0.5">🏨 Hotel Ibis Budget: Alistarse y Traje</div>
-            <p class="text-xs text-slate-400 mt-1">Ducha y preparación formal con total calma en la habitación.</p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="text-xs font-bold text-slate-700">14:15 – 15:15 (1 hora)</div>
+            <div class="text-xs font-semibold text-slate-900 mt-0.5">Hotel Ibis Budget: Ducha y Traje</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Tiempo en la habitación para bañarse y vestirse formalmente con calma.</p>
           </div>
 
-          <div class="pl-3 border-l-2 border-dashed border-indigo-400 text-xs text-indigo-200 py-1 flex items-center justify-between">
-            <span><i class="fa-solid fa-taxi mr-1.5"></i><strong>15:15 – 15:55:</strong> Taxi/Uber a la UC</span>
-            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Campus+San+Joaquin+UC+Santiago&travelmode=driving" target="_blank" class="underline text-[11px]">Ruta UC</a>
+          <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
+            <span><strong>15:15 – 15:55:</strong> Taxi/Uber al Campus UC</span>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Campus+San+Joaquin+UC+Santiago&travelmode=driving" target="_blank" class="btn-map">Mapa</a>
           </div>
 
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-amber-500/50">
-            <div class="text-xs font-bold text-amber-300">16:00 – 17:00 (1h antes)</div>
-            <div class="text-sm font-semibold text-white mt-0.5">📸 Previa y Acreditación en la UC</div>
-            <p class="text-xs text-slate-400 mt-1">Registro, encuentro con compañeros del Magíster y fotos previas.</p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="text-xs font-bold text-slate-700">16:00 – 17:00 (1h antes)</div>
+            <div class="text-xs font-semibold text-slate-900 mt-0.5">Llegada a la Universidad Católica (UC)</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Acreditación y fotos previas antes del inicio de la ceremonia.</p>
           </div>
 
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-indigo-500">
-            <div class="text-xs font-bold text-emerald-300">17:00 – 19:30 (Hora Chile)</div>
-            <div class="text-sm font-semibold text-white mt-0.5">🎓 Ceremonia de Graduación UC</div>
-            <p class="text-xs text-slate-400 mt-1">Ceremonia oficial a las 5:00 PM y brindis de honor.</p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="text-xs font-bold text-slate-700">17:00 – 19:30 (Hora Chile)</div>
+            <div class="text-xs font-semibold text-slate-900 mt-0.5">Ceremonia de Graduación UC</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Ceremonia oficial de grado y brindis de cierre.</p>
           </div>
         </div>
 
-        <!-- COLUMNA 2: RUTA ESTADIO COLO-COLO -->
-        <div class="border-2 border-emerald-500/60 bg-emerald-950/20 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2">
-            <h4 class="font-bold text-emerald-300 text-sm">⚽ RUTA AMIGOS (Colo-Colo)</h4>
-            <span class="text-[11px] bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded">Estadio Monumental</span>
+        <!-- COLUMNA 2: AMIGOS (ESTADIO COLO-COLO + MUSEO) -->
+        <div class="card p-4 border-t-4 border-t-slate-500 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h4 class="font-bold text-slate-900 text-sm">⚽ Ruta Estadio + 🏛️ Museo</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Línea 5 Metro</span>
           </div>
 
-          <div class="pl-3 border-l-2 border-dashed border-emerald-400 text-xs text-emerald-200 py-2 flex items-center justify-between">
-            <span><i class="fa-solid fa-train-subway mr-1.5"></i><strong>14:30 – 15:10:</strong> Metro L1 ➔ L5 Est. Pedrero</span>
-            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Estadio+Monumental+David+Arellano&travelmode=transit" target="_blank" class="underline text-[11px]">Ruta Estadio</a>
+          <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
+            <span><strong>14:00 – 14:30:</strong> Metro L1 ➔ L5 Est. Pedrero</span>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Estadio+Monumental+David+Arellano&travelmode=transit" target="_blank" class="btn-map">Mapa</a>
           </div>
 
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
-            <div class="text-xs font-bold text-emerald-300">15:15 – 17:30</div>
-            <div class="text-sm font-semibold text-white mt-0.5">🏟️ Tour y Museo Estadio Monumental</div>
-            <p class="text-xs text-slate-400 mt-1">Recorrido por cancha, camarines y trofeo de la Copa Libertadores.</p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="text-xs font-bold text-slate-700">14:30 – 15:45 (1h 15m)</div>
+            <div class="text-xs font-semibold text-slate-900 mt-0.5">Estadio Monumental de Colo-Colo</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Recorrido por cancha, vestuarios y Museo con la Copa Libertadores.</p>
           </div>
 
-          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
-            <div class="text-xs font-bold text-slate-300">17:30 – 19:30</div>
-            <div class="text-sm font-semibold text-white mt-0.5">🔄 Encuentro en UC o Retorno a Hotel</div>
-            <p class="text-xs text-slate-400 mt-1">A solo 2 estaciones de metro (Pedrero ➔ San Joaquín) o 8 min en Uber del Campus UC.</p>
+          <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
+            <span><strong>15:45 – 16:20:</strong> Metro L5 directo (Pedrero ➔ Quinta Normal)</span>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Estadio+Monumental+David+Arellano&destination=Museo+Nacional+de+Historia+Natural+Santiago&travelmode=transit" target="_blank" class="btn-map">Mapa</a>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="text-xs font-bold text-slate-700">16:20 – 17:30 (Cierra 17:30)</div>
+            <div class="text-xs font-semibold text-slate-900 mt-0.5">Museo Nacional de Historia Natural</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Visita al museo dentro del Parque Quinta Normal (entrada gratuita) y regreso al hotel a las 17:30 para alistarse.</p>
           </div>
         </div>
 
       </div>
 
-      <!-- Reencuentro Noche -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg mt-4 border-l-4 border-l-amber-400">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">20:30 en adelante</span>
-          <span class="text-xs text-slate-400">Vitacura / Las Condes / Providencia</span>
+      <!-- Cena de Graduación en Fukasawa -->
+      <div class="card p-4 border-l-4 border-l-slate-800">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">20:30 – 22:45</span>
+          <span class="text-xs text-slate-500 font-medium">Casacostanera, Piso 4 (Vitacura)</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🥂 Gran Cena de Celebración de Grado (Opción 🍣 Fukasawa)</h3>
-        <p class="text-xs text-slate-300 mt-1">Cena especial de los 4 para festejar el título de Magíster (excelente ocasión para reservar en <strong>Fukasawa</strong> si no fueron el martes).</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">🍣 Cena de Celebración de Grado en Fukasawa</h3>
+        <p class="text-xs text-slate-600 mt-1">Reencuentro del grupo después de la ceremonia para celebrar la graduación en <strong>Fukasawa by Marcos Baeza</strong> (Av. Nueva Costanera 3900, Vitacura • Cierra 23:00 hrs).</p>
+        <div class="mt-2.5">
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Fukasawa+Casacostanera+Vitacura&travelmode=driving" target="_blank" class="btn-map inline-block">
+            <i class="fa-solid fa-route mr-1"></i>Ver Ruta a Fukasawa
+          </a>
+        </div>
       </div>
     </section>
 
-    <!-- ==================== DÍA 4: VIERNES 30 (RETORNO ESCALONADO Y SALA VIP SKYTEAM) ==================== -->
-    <section id="day-4" class="day-content hidden space-y-2">
-      <div class="bg-purple-950/50 border border-purple-800/60 rounded-xl p-3 mb-3 text-xs text-purple-200">
-        <i class="fa-solid fa-champagne-glasses mr-1"></i> <strong>Check-out 12:00 PM y Vuelos de Tarde/Noche:</strong> Como Nicko & Sandy vuelan a las <strong>17:55</strong> y César & Liz a las <strong>20:25</strong>, ¡los 4 pueden disfrutar la mañana juntos, bañarse de 11:00 a 12:00 y hacer el check-out al mediodía!
-      </div>
-
-      <!-- Desayuno 3: Recomendados cerca del Hotel -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-amber-400">
-        <div class="flex justify-between items-start">
-          <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold px-2.5 py-1 rounded-md">08:45 – 10:00</span>
-          <span class="text-xs text-amber-300 font-semibold">Desayuno Día 3: Cafetería Nueva</span>
+    <!-- ==================== DÍA 4: VIERNES 30 ==================== -->
+    <section id="day-4" class="day-content hidden space-y-2.5">
+      <!-- Desayuno 3 -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">08:45 – 10:00</span>
+          <span class="text-xs text-slate-500 font-medium">Desayuno #3: Cafetería de la Zona</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🥞 Desayuno en Cafetería de Especialidad (A pasos del Hotel)</h3>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Desayuno en Casa Amaranta, Café Altura o Club Colombia</h3>
         <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-          <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
-            ⭐ <strong>Opción A: Casa Amaranta (Almirante Pastene 39)</strong>
-            <p class="text-slate-400 mt-0.5">A 3 min caminando (junto a Metro Manuel Montt). Calificación 4.9★, tostadas, huevos y sándwiches caseros.</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=Casa+Amaranta+Cafeteria+Providencia" target="_blank" class="text-amber-300 underline inline-block mt-1">Ver en Mapa</a>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <strong>Opción 1: Casa Amaranta (Almte. Pastene 39)</strong>
+            <p class="text-slate-500 mt-0.5">A 3 min a pie del hotel. Tostadas, huevos y sándwiches artesanales (4.9★).</p>
           </div>
-          <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-700">
-            ☕ <strong>Opción B: Café Altura (Manuel Montt 053)</strong>
-            <p class="text-slate-400 mt-0.5">A 2 cuadras del hotel en la misma avenida. Tostaduría de especialidad, desayunos y excelente ambiente.</p>
-            <a href="https://www.google.com/maps/search/?api=1&query=Cafe+Altura+Manuel+Montt+053" target="_blank" class="text-amber-300 underline inline-block mt-1">Ver en Mapa</a>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <strong>Opción 2: Café Altura (Manuel Montt 053)</strong>
+            <p class="text-slate-500 mt-0.5">A 2 cuadras del hotel en la misma avenida. Abre desde las 08:00 AM.</p>
           </div>
         </div>
       </div>
 
-      <!-- Compras rápidas -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg">
-        <div class="flex justify-between items-start">
-          <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-2.5 py-1 rounded-md">10:00 – 11:00</span>
+      <!-- Compras -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">10:00 – 11:00</span>
           <span class="text-xs text-slate-400">Providencia</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🍫 Últimas Compras de Chocolates y Recuerdos</h3>
-        <p class="text-xs text-slate-300 mt-1">Tiempo corto para últimas compras antes de subir a la habitación.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Compras de Chocolates y Recuerdos</h3>
+        <p class="text-xs text-slate-600 mt-1">Tiempo libre por Providencia / Costanera antes de regresar a empacar.</p>
       </div>
 
-      <!-- Ducha y Check-out 12:00 PM para los 4 -->
-      <div class="card-glass rounded-2xl p-4 shadow-lg border-l-4 border-l-indigo-500">
-        <div class="flex justify-between items-start">
-          <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold px-2.5 py-1 rounded-md">11:00 – 12:00 (1h antes del Check-out)</span>
-          <span class="text-xs text-indigo-300 font-semibold">Ambas Habitaciones</span>
+      <!-- Ducha y Check-out -->
+      <div class="card p-4">
+        <div class="flex justify-between items-center">
+          <span class="badge-time">11:00 – 12:00 (1h antes del Check-out)</span>
+          <span class="text-xs text-slate-400">Hotel Ibis Budget</span>
         </div>
-        <h3 class="text-base font-bold mt-2 text-white">🚿 Ducha con Calma, Cierre de Maletas y Check-out (12:00 PM)</h3>
-        <p class="text-xs text-slate-300 mt-1">Los 4 se alistan tranquilamente de 11:00 a 12:00, entregan llaves al mediodía y dejan las maletas en custodia en recepción.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Ducha, Empaque Final y Check-out (12:00 PM)</h3>
+        <p class="text-xs text-slate-600 mt-1">1 hora para bañarse y alistar todo con calma. A las <strong>12:00 PM</strong> hacen el check-out y dejan las maletas en custodia en recepción.</p>
       </div>
 
-      <!-- Etiqueta de División Viernes -->
+      <!-- Divisor Salidas Viernes -->
       <div class="py-2 text-center">
-        <span class="bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-          <i class="fa-solid fa-plane-departure mr-1.5"></i>SALIDAS ESCALONADAS AL AEROPUERTO + SALA VIP SKYTEAM
+        <span class="bg-slate-800 text-white text-[11px] font-semibold px-3.5 py-1 rounded-full">
+          SALIDAS ESCALONADAS AL AEROPUERTO + SALA VIP SKYTEAM
         </span>
       </div>
 
-      <!-- GRID EN PARALELO VIERNES: NICKO & SANDY (17:55) VS CÉSAR & LIZ (20:25) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Salidas por Pareja -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         
-        <!-- BLOQUE NICKO Y SANDY (VUELO 17:55) -->
-        <div class="border-2 border-rose-500/60 bg-rose-950/20 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between border-b border-rose-500/30 pb-2">
-            <h4 class="font-bold text-rose-300 text-sm">💑 Nicko & Sandy (Vuelo 17:55)</h4>
-            <span class="text-[10px] bg-rose-500/30 text-rose-200 px-2 py-0.5 rounded">LATAM LA 2696</span>
+        <!-- Nicko y Sandy (17:55) -->
+        <div class="card p-4 border-t-4 border-t-slate-800">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+            <h4 class="font-bold text-slate-900 text-sm">🛫 Nicko & Sandy (17:55)</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LA 2696</span>
           </div>
-          <ul class="text-xs text-slate-300 space-y-2.5">
-            <li>☕ <strong>12:00 – 13:50:</strong> Paseo ligero / café en Providencia con César y Liz.</li>
-            <li>🚕 <strong>14:00 – 14:45 (45 min):</strong> Recoger maletas en el hotel y Uber al Aeropuerto SCL.</li>
-            <li>🛂 <strong>14:45 – 15:20 (3h antes):</strong> Entrega de equipaje y control PDI internacional.</li>
-            <li class="text-amber-300">🍽️ <strong>15:20 – 17:15:</strong> <strong>Almuerzo en SkyTeam Lounge SCL</strong> (Terminal 2, Espigón E — buffet caliente y barra).</li>
-            <li class="text-emerald-300">🛫 <strong>17:55 (Hora Chile):</strong> Despegue a Lima (Aterrizaje 19:40 hora Perú).</li>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li><strong>12:00 – 13:50:</strong> Paseo ligero o café en Providencia con César y Liz.</li>
+            <li><strong>14:00 – 14:45 (45 min):</strong> Recoger maletas en el hotel y Uber al Aeropuerto SCL.</li>
+            <li><strong>14:45 – 15:20 (3h antes):</strong> Entrega de equipaje y control PDI.</li>
+            <li><strong>15:20 – 17:15:</strong> <strong>Almuerzo en SkyTeam Lounge SCL</strong> (Terminal 2, Espigón E).</li>
+            <li><strong>17:55 (Hora Chile):</strong> Despegue a Lima (Llegada 19:40 Perú).</li>
           </ul>
         </div>
 
-        <!-- BLOQUE CÉSAR Y LIZ (VUELO 20:25) -->
-        <div class="border-2 border-sky-500/60 bg-sky-950/20 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between border-b border-sky-500/30 pb-2">
-            <h4 class="font-bold text-sky-300 text-sm">💑 César & Liz (Vuelo 20:25)</h4>
-            <span class="text-[10px] bg-sky-500/30 text-sky-200 px-2 py-0.5 rounded">Salida 20:25 SCL</span>
+        <!-- César y Liz (20:25) -->
+        <div class="card p-4 border-t-4 border-t-slate-500">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
+            <h4 class="font-bold text-slate-900 text-sm">🛫 César & Liz (20:25)</h4>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LATAM</span>
           </div>
-          <ul class="text-xs text-slate-300 space-y-2.5">
-            <li>🛍️ <strong>12:00 – 16:30:</strong> Almuerzo tranquilo y tarde libre por Providencia / Costanera.</li>
-            <li>🚕 <strong>16:40 – 17:25 (45 min):</strong> Recoger maletas en el hotel y Uber al Aeropuerto SCL.</li>
-            <li>🛂 <strong>17:25 – 18:00 (3h antes):</strong> Bag drop en LATAM y control migratorio PDI.</li>
-            <li class="text-amber-300">🍽️ <strong>18:00 – 19:45:</strong> <strong>Cena y relax en SkyTeam Lounge SCL</strong> (Terminal Internacional T2).</li>
-            <li class="text-emerald-300">🛫 <strong>20:25 (Hora Chile):</strong> Despegue a Lima (Aterrizaje 22:10 hora Perú).</li>
+          <ul class="text-xs text-slate-600 space-y-2">
+            <li><strong>12:00 – 16:30:</strong> Almuerzo tranquilo y tarde libre por Providencia.</li>
+            <li><strong>16:40 – 17:25 (45 min):</strong> Recoger maletas en recepción del hotel y Uber al Aeropuerto SCL.</li>
+            <li><strong>17:25 – 18:00 (3h antes):</strong> Entrega de maletas y control PDI.</li>
+            <li><strong>18:00 – 19:45:</strong> <strong>Cena y descanso en SkyTeam Lounge SCL</strong> (Terminal 2).</li>
+            <li><strong>20:25 (Hora Chile):</strong> Despegue a Lima (Llegada 22:10 Perú).</li>
           </ul>
         </div>
 
-      </div>
-
-      <!-- Botón Mapa al Aeropuerto -->
-      <div class="pt-2 text-center">
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Aeropuerto+Arturo+Merino+Benitez+Santiago&travelmode=driving" target="_blank" class="inline-block bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 px-4 py-2 rounded-xl text-xs text-amber-200">
-          <i class="fa-solid fa-route mr-1.5"></i>Abrir Ruta del Hotel al Aeropuerto SCL en Google Maps
-        </a>
       </div>
     </section>
 
