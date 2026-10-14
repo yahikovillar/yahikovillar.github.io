@@ -2,10 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
   <title>Itinerario Santiago de Chile 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -23,6 +28,17 @@
       border-color: #0f172a;
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
     }
+    .tool-btn {
+      background-color: #f8fafc;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+      transition: all 0.15s;
+    }
+    .tool-btn.active {
+      background-color: #e2e8f0;
+      color: #0f172a;
+      border-color: #94a3b8;
+    }
     .transit-step {
       border-left: 2px dashed #cbd5e1;
     }
@@ -31,6 +47,11 @@
       border: 1px solid #e2e8f0;
       border-radius: 0.875rem;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+      transition: border-color 0.2s;
+    }
+    .card.live-now {
+      border: 2px solid #0f172a;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
     }
     .badge-time {
       background-color: #f1f5f9;
@@ -40,7 +61,7 @@
       padding: 0.2rem 0.6rem;
       border-radius: 0.375rem;
     }
-    .btn-map {
+    .btn-action {
       background-color: #f8fafc;
       color: #334155;
       border: 1px solid #cbd5e1;
@@ -49,25 +70,84 @@
       padding: 0.25rem 0.6rem;
       border-radius: 0.375rem;
       transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
     }
-    .btn-map:hover {
+    .btn-action:hover {
       background-color: #e2e8f0;
+    }
+    #map-container {
+      height: 290px;
+      width: 100%;
+      border-radius: 0.75rem;
+      z-index: 10;
+    }
+    .num-marker {
+      background-color: #0f172a;
+      color: #ffffff;
+      border-radius: 9999px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
     }
   </style>
 </head>
-<body class="pb-16">
+<body class="pb-20">
+
+  <!-- Toast de copiado -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg z-50 hidden">
+    Copiado al portapapeles
+  </div>
+
+  <!-- Barra Superior: Relojes en Vivo + Clima -->
+  <div class="bg-slate-900 text-slate-200 text-[11px] py-1.5 px-4">
+    <div class="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <span>🇵🇪 Lima: <strong id="clock-pe" class="text-white">--:--</strong></span>
+        <span class="text-slate-600">|</span>
+        <span>🇨🇱 Chile: <strong id="clock-cl" class="text-white">--:--</strong></span>
+      </div>
+      <div class="flex items-center gap-3 text-slate-300">
+        <span><i class="fa-solid fa-cloud-sun mr-1"></i>Stgo: <strong id="temp-scl" class="text-white">--°C</strong></span>
+        <span>Rancagua: <strong id="temp-rcg" class="text-white">--°C</strong></span>
+      </div>
+    </div>
+  </div>
 
   <!-- Header Minimalista -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
       <div>
         <h1 class="text-base md:text-lg font-bold text-slate-900">🇨🇱 Itinerario Santiago de Chile</h1>
         <p class="text-xs text-slate-500">27 al 30 Oct 2026 • Nicko & Sandy + César & Liz</p>
       </div>
-      <a href="https://www.google.com/maps/search/?api=1&query=Ibis+Budget+Santiago+Providencia" target="_blank" 
-         class="btn-map flex items-center gap-1.5 py-1.5 px-3">
-        <i class="fa-solid fa-location-dot text-slate-600"></i> Hotel Ibis Budget
-      </a>
+      <button onclick="copyText('Av. Manuel Montt 240, Providencia, Santiago', 'Dirección del hotel copiada')" 
+         class="btn-action py-1.5 px-2.5">
+        <i class="fa-regular fa-copy"></i> Copiar Hotel
+      </button>
+    </div>
+
+    <!-- Barra de Herramientas Rápidas (Conversor, Reservas, Checklist, Mapa) -->
+    <div class="max-w-3xl mx-auto px-4 pb-2.5 grid grid-cols-4 gap-1.5">
+      <button onclick="togglePanel('panel-map')" id="btn-panel-map" class="tool-btn rounded-lg py-1.5 px-2 text-xs font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-regular fa-map"></i> <span>Mapa Día</span>
+      </button>
+      <button onclick="togglePanel('panel-calc')" id="btn-panel-calc" class="tool-btn rounded-lg py-1.5 px-2 text-xs font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-coins"></i> <span>Conversor</span>
+      </button>
+      <button onclick="togglePanel('panel-vault')" id="btn-panel-vault" class="tool-btn rounded-lg py-1.5 px-2 text-xs font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-ticket"></i> <span>Reservas</span>
+      </button>
+      <button onclick="togglePanel('panel-check')" id="btn-panel-check" class="tool-btn rounded-lg py-1.5 px-2 text-xs font-medium flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-list-check"></i> <span>Checklist</span>
+      </button>
     </div>
 
     <!-- Pestañas de Días -->
@@ -91,21 +171,140 @@
     </div>
   </header>
 
-  <main class="max-w-3xl mx-auto px-4 pt-5">
+  <main class="max-w-3xl mx-auto px-4 pt-4">
+
+    <!-- ==================== PANELES DESPLEGABLES ==================== -->
+
+    <!-- 1. PANEL MAPA INTERACTIVO DEL DÍA -->
+    <div id="panel-map" class="hidden mb-4 card p-3">
+      <div class="flex items-center justify-between mb-2">
+        <span id="map-day-title" class="text-xs font-bold text-slate-800">Recorrido en Mapa</span>
+        <button onclick="togglePanel('panel-map')" class="text-xs text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+      </div>
+      <div id="map-container" class="border border-slate-200"></div>
+      <p id="map-legend" class="text-[11px] text-slate-500 mt-2"></p>
+    </div>
+
+    <!-- 2. PANEL CALCULADORA CLP ⇄ PEN / USD -->
+    <div id="panel-calc" class="hidden mb-4 card p-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-calculator mr-1"></i> Conversor Rápido de Moneda</span>
+        <button onclick="togglePanel('panel-calc')" class="text-xs text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Pesos Chilenos (CLP)</label>
+          <input type="number" id="input-clp" placeholder="Ej: 10000" oninput="convertFromCLP()" 
+                 class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Soles Peruanos (S/ PEN)</label>
+          <input type="number" id="input-pen" placeholder="Ej: 40" oninput="convertFromPEN()" 
+                 class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+        </div>
+        <div>
+          <label class="text-[11px] text-slate-500 font-medium">Dólares (USD $)</label>
+          <input type="number" id="input-usd" placeholder="Ej: 10.5" oninput="convertFromUSD()" 
+                 class="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+        </div>
+      </div>
+      <div class="mt-2.5 flex flex-wrap gap-1.5 text-[11px] text-slate-500">
+        <span>Referencias rápidas:</span>
+        <button onclick="setCLP(830)" class="underline hover:text-slate-800">$830 (Metro)</button> •
+        <button onclick="setCLP(5000)" class="underline hover:text-slate-800">$5.000</button> •
+        <button onclick="setCLP(15000)" class="underline hover:text-slate-800">$15.000</button> •
+        <button onclick="setCLP(30000)" class="underline hover:text-slate-800">$30.000</button>
+      </div>
+    </div>
+
+    <!-- 3. PANEL BÓVEDA DE RESERVAS Y DIRECCIONES -->
+    <div id="panel-vault" class="hidden mb-4 card p-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-vault mr-1"></i> Códigos de Reserva y Datos Clave</span>
+        <button onclick="togglePanel('panel-vault')" class="text-xs text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-slate-500 text-[11px]">LATAM Nicko & Sandy (LA651 / LA2696)</div>
+            <div class="font-bold text-slate-900 text-sm">Código: LQROKD</div>
+          </div>
+          <button onclick="copyText('LQROKD', 'Código LATAM copiado')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar</button>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-slate-500 text-[11px]">Viña Concha y Toro (Mié 28 - 09:50 CL)</div>
+            <div class="font-bold text-slate-900 text-sm">Cód: CV-T149264268</div>
+          </div>
+          <button onclick="copyText('CV-T149264268', 'Código de Viña copiado')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar</button>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-slate-500 text-[11px]">Hospedaje (Check-out Vie 12:00)</div>
+            <div class="font-bold text-slate-900">Ibis Budget Providencia</div>
+            <div class="text-[11px] text-slate-500">Av. Manuel Montt 240, Providencia</div>
+          </div>
+          <button onclick="copyText('Av. Manuel Montt 240, Providencia, Santiago', 'Dirección copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar</button>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-slate-500 text-[11px]">Cena Graduación (Jue 29 - 20:30)</div>
+            <div class="font-bold text-slate-900">Fukasawa (Casacostanera Piso 4)</div>
+            <div class="text-[11px] text-slate-500">Av. Nueva Costanera 3900, Vitacura</div>
+          </div>
+          <button onclick="copyText('Av. Nueva Costanera 3900, Vitacura, Santiago', 'Dirección Fukasawa copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. PANEL CHECKLIST INTERACTIVO (SE GUARDA EN EL CELULAR) -->
+    <div id="panel-check" class="hidden mb-4 card p-4">
+      <div class="flex items-center justify-between mb-2.5">
+        <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-check-double mr-1"></i> Checklist Personal (Se guarda en tu celular)</span>
+        <button onclick="togglePanel('panel-check')" class="text-xs text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-slate-700">
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-1" onchange="saveChecks()" class="rounded">
+          <span>Check-in en LATAM (48h antes del vuelo)</span>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-2" onchange="saveChecks()" class="rounded">
+          <span>Declaración Jurada SAG Digital (Ingreso a Chile)</span>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-3" onchange="saveChecks()" class="rounded">
+          <span>Tarjeta física y accesos para Sala VIP (Lima y SkyTeam SCL)</span>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-4" onchange="saveChecks()" class="rounded">
+          <span>DNI / Pasaporte físico (obligatorio para PDI, Hotel y Estadio)</span>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-5" onchange="saveChecks()" class="rounded">
+          <span>Traje formal completo para la Ceremonia en la UC (Jueves)</span>
+        </label>
+        <label class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200 cursor-pointer">
+          <input type="checkbox" id="chk-6" onchange="saveChecks()" class="rounded">
+          <span>Comprar tarjeta Bip! en el Metro para ir a Puente Alto (Viña)</span>
+        </label>
+      </div>
+    </div>
 
     <!-- ==================== DÍA 1: MARTES 27 ==================== -->
     <section id="day-1" class="day-content space-y-2.5">
-      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600">
-        <i class="fa-regular fa-clock mr-1"></i> <strong>Nota de horario:</strong> Llegada 3 horas antes al aeropuerto de Lima para desayunar en la Sala VIP. Ambos vuelos aterrizan en Santiago con solo 20 minutos de diferencia.
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <div><i class="fa-regular fa-clock mr-1"></i> <strong>Nota:</strong> Llegada 3h antes en Lima para la Sala VIP. Ambos vuelos aterrizan en SCL con 20 min de diferencia.</div>
+        <button onclick="openMapForDay(1)" class="btn-action shrink-0"><i class="fa-regular fa-map"></i> Mapa Día 1</button>
       </div>
 
       <!-- Vuelos de Ida en Paralelo -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
         <!-- Nicko y Sandy -->
-        <div class="card p-4">
+        <div class="card p-4" data-date="2026-10-27" data-start="08:30" data-end="18:00">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
             <h4 class="font-bold text-slate-800 text-sm">✈️ Nicko & Sandy (12:30)</h4>
-            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LA 651</span>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LA 651 • LQROKD</span>
           </div>
           <ul class="text-xs text-slate-600 space-y-2">
             <li><strong>08:30 – 09:30 (Perú):</strong> Taxi desde casa al Aeropuerto Jorge Chávez.</li>
@@ -117,10 +316,10 @@
         </div>
 
         <!-- César y Liz -->
-        <div class="card p-4">
+        <div class="card p-4" data-date="2026-10-27" data-start="08:00" data-end="17:45">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
             <h4 class="font-bold text-slate-800 text-sm">✈️ César & Liz (12:00)</h4>
-            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LATAM</span>
+            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LATAM Directo</span>
           </div>
           <ul class="text-xs text-slate-600 space-y-2">
             <li><strong>08:00 – 09:00 (Perú):</strong> Taxi desde casa al Aeropuerto Jorge Chávez.</li>
@@ -133,25 +332,26 @@
       </div>
 
       <!-- Encuentro en SCL -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-27" data-start="17:40" data-end="19:00">
         <div class="flex justify-between items-center">
           <span class="badge-time">17:40 – 19:00 (Hora Chile)</span>
           <span class="text-xs text-slate-400">Aeropuerto SCL</span>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Control PDI, Maletas y Encuentro de los 4</h3>
-        <p class="text-xs text-slate-600 mt-1">Encuentro saliendo de las cintas de equipaje para tomar un solo taxi o van hacia el hotel.</p>
+        <p class="text-xs text-slate-600 mt-1">Encuentro saliendo de las cintas de equipaje para tomar un solo taxi o van hacia Providencia.</p>
       </div>
 
       <!-- Tránsito a Hotel -->
       <div class="ml-5 pl-4 py-2 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
         <div><i class="fa-solid fa-car mr-1.5 text-slate-400"></i><strong>19:00 – 19:45 (45 min):</strong> Taxi / Uber del Aeropuerto al Hotel</div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Aeropuerto+Arturo+Merino+Benitez+Santiago&destination=Ibis+Budget+Santiago+Providencia&travelmode=driving" target="_blank" class="btn-map">
-          Ver Ruta
-        </a>
+        <div class="flex gap-1.5">
+          <button onclick="copyText('Av. Manuel Montt 240, Providencia', 'Dirección Hotel copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Dir. Uber</button>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Aeropuerto+Arturo+Merino+Benitez+Santiago&destination=Ibis+Budget+Santiago+Providencia&travelmode=driving" target="_blank" class="btn-action">Ruta</a>
+        </div>
       </div>
 
       <!-- Hotel Check-in -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-27" data-start="19:45" data-end="20:20">
         <div class="flex justify-between items-center">
           <span class="badge-time">19:45 – 20:20</span>
           <span class="text-xs text-slate-400">Av. Manuel Montt 240</span>
@@ -163,30 +363,29 @@
       <!-- Tránsito a Costanera -->
       <div class="ml-5 pl-4 py-2 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
         <div><i class="fa-solid fa-train-subway mr-1.5 text-slate-400"></i><strong>20:20 – 20:30 (10 min):</strong> Metro Línea 1 (Manuel Montt ➔ Tobalaba / Los Leones)</div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Cenco+Costanera+Santiago&travelmode=transit" target="_blank" class="btn-map">
-          Ver Ruta Metro
-        </a>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Cenco+Costanera+Santiago&travelmode=transit" target="_blank" class="btn-action">Ruta Metro</a>
       </div>
 
       <!-- Cenco Costanera -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-27" data-start="20:30" data-end="22:45">
         <div class="flex justify-between items-center">
           <span class="badge-time">20:30 – 22:30</span>
-          <span class="text-xs text-slate-400">Providencia</span>
+          <button onclick="copyText('Av. Andrés Bello 2425, Providencia', 'Dirección Costanera copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar Dir.</button>
         </div>
-        <h3 class="text-sm font-bold mt-2 text-slate-900">Paseo y Cena de Bienvenida en Cenco Costanera</h3>
-        <p class="text-xs text-slate-600 mt-1">Recorrido por el mall y primera cena tranquila en la zona de restaurantes de Costanera o alrededores de Providencia.</p>
+        <h3 class="text-sm font-bold mt-2 text-slate-900">Paseo y Cena en Cenco Costanera</h3>
+        <p class="text-xs text-slate-600 mt-1">Recorrido por el centro comercial y primera cena tranquila en la zona de restaurantes de Costanera o Providencia.</p>
       </div>
     </section>
 
     <!-- ==================== DÍA 2: MIÉRCOLES 28 ==================== -->
     <section id="day-2" class="day-content hidden space-y-2.5">
-      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600">
-        <i class="fa-solid fa-train-subway mr-1"></i> <strong>Ahorro en transporte a la Viña:</strong> Ir en tren urbano (Metro L1 + L4 hasta Plaza de Puente Alto) + taxi corto de 8 min cuesta ~$8,500 CLP en total para los 4 (~70% más barato que un taxi directo desde Providencia).
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <div><i class="fa-solid fa-train-subway mr-1"></i> <strong>Ruta Ahorro a la Viña:</strong> Tren Metro L1 + L4 hasta Plaza de Puente Alto + taxi corto (ahorra ~70%).</div>
+        <button onclick="openMapForDay(2)" class="btn-action shrink-0"><i class="fa-regular fa-map"></i> Mapa Día 2</button>
       </div>
 
       <!-- Desayuno 1 -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-28" data-start="07:30" data-end="08:30">
         <div class="flex justify-between items-center">
           <span class="badge-time">07:30 – 08:25</span>
           <span class="text-xs text-slate-500 font-medium">Desayuno #1: En el Hotel</span>
@@ -200,43 +399,41 @@
         <div>
           <i class="fa-solid fa-train mr-1.5 text-slate-400"></i><strong>08:30 – 09:35 (1h 05m):</strong> Metro L1 (Manuel Montt ➔ Tobalaba) + Tren L4 hasta <strong>Plaza de Puente Alto</strong> (~45 min) + Taxi corto a la Viña (8 min).
         </div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Vina+Concha+y+Toro+Pirque&travelmode=transit" target="_blank" class="btn-map">
-          Ver Ruta Tren
-        </a>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Vina+Concha+y+Toro+Pirque&travelmode=transit" target="_blank" class="btn-action">Ruta Tren</a>
       </div>
 
       <!-- Viña Concha y Toro -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-28" data-start="09:45" data-end="12:40">
         <div class="flex justify-between items-center">
           <span class="badge-time">09:50 – 12:35 (Confirmado)</span>
-          <span class="text-xs text-slate-500 font-medium">Reserva: CV-T149264268</span>
+          <button onclick="copyText('Av. Virginia Subercaseaux 210, Pirque', 'Dirección Viña copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar Dir.</button>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Viña Concha y Toro (Tour Guiado Premium + Tasting Marques)</h3>
-        <p class="text-xs text-slate-600 mt-1">Jardines históricos de Pirque, bodega del Casillero del Diablo y degustación guiada Marques de Casa Concha.</p>
+        <p class="text-xs text-slate-600 mt-1">Reserva <strong>CV-T149264268</strong>. Jardines históricos de Pirque, Casillero del Diablo y degustación Marques de Casa Concha.</p>
       </div>
 
       <!-- Tránsito Viña a Parque Safari -->
       <div class="ml-5 pl-4 py-2.5 transit-step flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
         <div>
           <i class="fa-solid fa-car mr-1.5 text-slate-400"></i><strong>12:40 – 13:50 (1h 10m):</strong> Traslado directo de Pirque a Parque Safari (Rancagua)
-          <div class="text-[11px] text-slate-500 mt-0.5">*Aquí sí conviene Uber directo entre los 4 por Acceso Sur, o taxi a Est. San Bernardo + Tren EFE a Rancagua.</div>
         </div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Vina+Concha+y+Toro+Pirque&destination=Parque+Safari+Rancagua+Chile&travelmode=driving" target="_blank" class="btn-map">
-          Ver Ruta Sur
-        </a>
+        <div class="flex gap-1.5">
+          <button onclick="copyText('Ruta H-30 Km 5, Rancagua, Chile', 'Dirección Parque Safari copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Dir. Safari</button>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Vina+Concha+y+Toro+Pirque&destination=Parque+Safari+Rancagua+Chile&travelmode=driving" target="_blank" class="btn-action">Ruta Sur</a>
+        </div>
       </div>
 
       <!-- Parque Safari -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-28" data-start="13:50" data-end="16:45">
         <div class="flex justify-between items-center">
           <span class="badge-time">13:50 – 16:40</span>
           <span class="text-xs text-slate-400">Rancagua (Cierra 17:00)</span>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Parque Safari Chile: Almuerzo + Cola + Safaris</h3>
         <ul class="text-xs text-slate-600 mt-2 space-y-1.5">
-          <li>• <strong>13:50 – 14:35 (45 min):</strong> Compra de tickets en boletería al llegar y <strong>almuerzo</strong> en el restaurante del parque.</li>
+          <li>• <strong>13:50 – 14:35 (45 min):</strong> Compra de tickets en boletería apenas llegan y <strong>almuerzo</strong> en el restaurante del parque.</li>
           <li>• <strong>14:35 – 14:55 (20 min):</strong> Tiempo estimado de <strong>cola de embarque</strong> para el Safari Felinos.</li>
-          <li>• <strong>14:55 – 16:35 (1h 40m):</strong> Recorrido en vehículo enrejado por <strong>Safari Grandes Felinos</strong> (leones y tigres) + <strong>Safari Herbívoros</strong>.</li>
+          <li>• <strong>14:55 – 16:35 (1h 40m):</strong> Recorrido en vehículo enrejado por <strong>Safari Grandes Felinos</strong> + <strong>Safari Herbívoros</strong>.</li>
         </ul>
       </div>
 
@@ -245,26 +442,29 @@
         <div>
           <i class="fa-solid fa-train mr-1.5 text-slate-400"></i><strong>16:45 – 18:15 (1h 30m):</strong> Taxi a Estación Rancagua (15m) + <strong>Tren EFE a Estación Central</strong> (1h 10m) + Metro L1 a Manuel Montt.
         </div>
-        <a href="https://www.google.com/maps/dir/?api=1&origin=Parque+Safari+Rancagua&destination=Ibis+Budget+Santiago+Providencia&travelmode=transit" target="_blank" class="btn-map">
-          Ver Ruta Retorno
-        </a>
+        <a href="https://www.google.com/maps/dir/?api=1&origin=Parque+Safari+Rancagua&destination=Ibis+Budget+Santiago+Providencia&travelmode=transit" target="_blank" class="btn-action">Ver Retorno</a>
       </div>
 
       <!-- Noche Miércoles -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-28" data-start="18:15" data-end="22:30">
         <div class="flex justify-between items-center">
           <span class="badge-time">18:15 en adelante</span>
           <span class="text-xs text-slate-400">Providencia</span>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Descanso en el Hotel y Cena Casual</h3>
-        <p class="text-xs text-slate-600 mt-1">Ducha y descanso en el hotel. Cena ligera por Manuel Montt o Barrio Italia.</p>
+        <p class="text-xs text-slate-600 mt-1">Ducha y descanso en el hotel. Cena ligera por Av. Manuel Montt o Barrio Italia.</p>
       </div>
     </section>
 
     <!-- ==================== DÍA 3: JUEVES 29 ==================== -->
     <section id="day-3" class="day-content hidden space-y-2.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <div><i class="fa-solid fa-code-branch mr-1"></i> <strong>Mañana juntos y tarde dividida:</strong> Ceremonia en la UC (17:00) vs. Estadio Colo-Colo + Museo Nacional.</div>
+        <button onclick="openMapForDay(3)" class="btn-action shrink-0"><i class="fa-regular fa-map"></i> Mapa Día 3</button>
+      </div>
+
       <!-- Desayuno 2 -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-29" data-start="08:30" data-end="09:30">
         <div class="flex justify-between items-center">
           <span class="badge-time">08:30 – 09:30</span>
           <span class="text-xs text-slate-500 font-medium">Desayuno #2: Frente al Hotel</span>
@@ -274,17 +474,17 @@
       </div>
 
       <!-- Cerro San Cristóbal -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-29" data-start="09:35" data-end="12:35">
         <div class="flex justify-between items-center">
           <span class="badge-time">09:35 – 12:30</span>
-          <span class="text-xs text-slate-400">Providencia</span>
+          <button onclick="copyText('Estación Oasis Teleférico, Pedro de Valdivia Norte, Providencia', 'Dirección Teleférico copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar Dir.</button>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Teleférico y Funicular Cerro San Cristóbal</h3>
-        <p class="text-xs text-slate-600 mt-1">Subida por Estación Oasis (Pedro de Valdivia Norte, a 10 min del hotel), vistas de la Cordillera, Santuario de la Cumbre y mote con huesillo.</p>
+        <p class="text-xs text-slate-600 mt-1">Subida por Estación Oasis (a 10 min del hotel), miradores de la Cordillera, Santuario de la Cumbre y mote con huesillo.</p>
       </div>
 
       <!-- Almuerzo -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-29" data-start="12:40" data-end="14:00">
         <div class="flex justify-between items-center">
           <span class="badge-time">12:45 – 14:00</span>
           <span class="text-xs text-slate-400">Providencia</span>
@@ -304,7 +504,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         
         <!-- COLUMNA 1: GRADUACIÓN UC -->
-        <div class="card p-4 border-t-4 border-t-slate-800 space-y-3">
+        <div class="card p-4 border-t-4 border-t-slate-800 space-y-3" data-date="2026-10-29" data-start="14:00" data-end="19:45">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 class="font-bold text-slate-900 text-sm">🎓 Ruta Graduación UC</h4>
             <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Cita 16:00</span>
@@ -318,7 +518,7 @@
 
           <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
             <span><strong>15:15 – 15:55:</strong> Taxi/Uber al Campus UC</span>
-            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Campus+San+Joaquin+UC+Santiago&travelmode=driving" target="_blank" class="btn-map">Mapa</a>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Campus+San+Joaquin+UC+Santiago&travelmode=driving" target="_blank" class="btn-action">Mapa</a>
           </div>
 
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
@@ -335,7 +535,7 @@
         </div>
 
         <!-- COLUMNA 2: AMIGOS (ESTADIO COLO-COLO + MUSEO) -->
-        <div class="card p-4 border-t-4 border-t-slate-500 space-y-3">
+        <div class="card p-4 border-t-4 border-t-slate-500 space-y-3" data-date="2026-10-29" data-start="14:00" data-end="19:45">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 class="font-bold text-slate-900 text-sm">⚽ Ruta Estadio + 🏛️ Museo</h4>
             <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded">Línea 5 Metro</span>
@@ -343,7 +543,7 @@
 
           <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
             <span><strong>14:00 – 14:30:</strong> Metro L1 ➔ L5 Est. Pedrero</span>
-            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Estadio+Monumental+David+Arellano&travelmode=transit" target="_blank" class="btn-map">Mapa</a>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Estadio+Monumental+David+Arellano&travelmode=transit" target="_blank" class="btn-action">Mapa</a>
           </div>
 
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
@@ -354,29 +554,30 @@
 
           <div class="pl-3 border-l-2 border-dashed border-slate-300 text-xs text-slate-600 py-1 flex items-center justify-between">
             <span><strong>15:45 – 16:20:</strong> Metro L5 directo (Pedrero ➔ Quinta Normal)</span>
-            <a href="https://www.google.com/maps/dir/?api=1&origin=Estadio+Monumental+David+Arellano&destination=Museo+Nacional+de+Historia+Natural+Santiago&travelmode=transit" target="_blank" class="btn-map">Mapa</a>
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Estadio+Monumental+David+Arellano&destination=Museo+Nacional+de+Historia+Natural+Santiago&travelmode=transit" target="_blank" class="btn-action">Mapa</a>
           </div>
 
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
             <div class="text-xs font-bold text-slate-700">16:20 – 17:30 (Cierra 17:30)</div>
             <div class="text-xs font-semibold text-slate-900 mt-0.5">Museo Nacional de Historia Natural</div>
-            <p class="text-[11px] text-slate-500 mt-0.5">Visita al museo dentro del Parque Quinta Normal (entrada gratuita) y regreso al hotel a las 17:30 para alistarse.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Visita al museo en el Parque Quinta Normal (entrada gratuita) y regreso al hotel a las 17:30 para alistarse.</p>
           </div>
         </div>
 
       </div>
 
       <!-- Cena de Graduación en Fukasawa -->
-      <div class="card p-4 border-l-4 border-l-slate-800">
+      <div class="card p-4 border-l-4 border-l-slate-800" data-date="2026-10-29" data-start="20:15" data-end="23:00">
         <div class="flex justify-between items-center">
           <span class="badge-time">20:30 – 22:45</span>
           <span class="text-xs text-slate-500 font-medium">Casacostanera, Piso 4 (Vitacura)</span>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">🍣 Cena de Celebración de Grado en Fukasawa</h3>
         <p class="text-xs text-slate-600 mt-1">Reencuentro del grupo después de la ceremonia para celebrar la graduación en <strong>Fukasawa by Marcos Baeza</strong> (Av. Nueva Costanera 3900, Vitacura • Cierra 23:00 hrs).</p>
-        <div class="mt-2.5">
-          <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Fukasawa+Casacostanera+Vitacura&travelmode=driving" target="_blank" class="btn-map inline-block">
-            <i class="fa-solid fa-route mr-1"></i>Ver Ruta a Fukasawa
+        <div class="mt-2.5 flex gap-2">
+          <button onclick="copyText('Av. Nueva Costanera 3900, Vitacura, Santiago', 'Dirección Fukasawa copiada')" class="btn-action"><i class="fa-regular fa-copy"></i> Copiar Dir. Uber</button>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Ibis+Budget+Santiago+Providencia&destination=Fukasawa+Casacostanera+Vitacura&travelmode=driving" target="_blank" class="btn-action">
+            <i class="fa-solid fa-route"></i> Ver Ruta
           </a>
         </div>
       </div>
@@ -384,27 +585,38 @@
 
     <!-- ==================== DÍA 4: VIERNES 30 ==================== -->
     <section id="day-4" class="day-content hidden space-y-2.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex items-center justify-between gap-2">
+        <div><i class="fa-solid fa-plane-departure mr-1"></i> <strong>Check-out 12:00 PM:</strong> Ambas parejas llegan 3h antes a SCL para comer en el SkyTeam Lounge.</div>
+        <button onclick="openMapForDay(4)" class="btn-action shrink-0"><i class="fa-regular fa-map"></i> Mapa Día 4</button>
+      </div>
+
       <!-- Desayuno 3 -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-30" data-start="08:45" data-end="10:00">
         <div class="flex justify-between items-center">
           <span class="badge-time">08:45 – 10:00</span>
           <span class="text-xs text-slate-500 font-medium">Desayuno #3: Cafetería de la Zona</span>
         </div>
         <h3 class="text-sm font-bold mt-2 text-slate-900">Desayuno en Casa Amaranta, Café Altura o Club Colombia</h3>
         <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-            <strong>Opción 1: Casa Amaranta (Almte. Pastene 39)</strong>
-            <p class="text-slate-500 mt-0.5">A 3 min a pie del hotel. Tostadas, huevos y sándwiches artesanales (4.9★).</p>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between items-start gap-2">
+            <div>
+              <strong>Opción 1: Casa Amaranta (Almte. Pastene 39)</strong>
+              <p class="text-slate-500 mt-0.5">A 3 min a pie del hotel. Tostadas, huevos y sándwiches artesanales (4.9★).</p>
+            </div>
+            <button onclick="copyText('Almirante Pastene 39, Providencia', 'Dirección Casa Amaranta copiada')" class="btn-action shrink-0"><i class="fa-regular fa-copy"></i></button>
           </div>
-          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-            <strong>Opción 2: Café Altura (Manuel Montt 053)</strong>
-            <p class="text-slate-500 mt-0.5">A 2 cuadras del hotel en la misma avenida. Abre desde las 08:00 AM.</p>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex justify-between items-start gap-2">
+            <div>
+              <strong>Opción 2: Café Altura (Manuel Montt 053)</strong>
+              <p class="text-slate-500 mt-0.5">A 2 cuadras del hotel en la misma avenida. Abre desde las 08:00 AM.</p>
+            </div>
+            <button onclick="copyText('Av. Manuel Montt 053, Providencia', 'Dirección Café Altura copiada')" class="btn-action shrink-0"><i class="fa-regular fa-copy"></i></button>
           </div>
         </div>
       </div>
 
       <!-- Compras -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-30" data-start="10:00" data-end="11:00">
         <div class="flex justify-between items-center">
           <span class="badge-time">10:00 – 11:00</span>
           <span class="text-xs text-slate-400">Providencia</span>
@@ -414,7 +626,7 @@
       </div>
 
       <!-- Ducha y Check-out -->
-      <div class="card p-4">
+      <div class="card p-4" data-date="2026-10-30" data-start="11:00" data-end="12:15">
         <div class="flex justify-between items-center">
           <span class="badge-time">11:00 – 12:00 (1h antes del Check-out)</span>
           <span class="text-xs text-slate-400">Hotel Ibis Budget</span>
@@ -434,7 +646,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         
         <!-- Nicko y Sandy (17:55) -->
-        <div class="card p-4 border-t-4 border-t-slate-800">
+        <div class="card p-4 border-t-4 border-t-slate-800" data-date="2026-10-30" data-start="12:15" data-end="18:00">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
             <h4 class="font-bold text-slate-900 text-sm">🛫 Nicko & Sandy (17:55)</h4>
             <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LA 2696</span>
@@ -449,7 +661,7 @@
         </div>
 
         <!-- César y Liz (20:25) -->
-        <div class="card p-4 border-t-4 border-t-slate-500">
+        <div class="card p-4 border-t-4 border-t-slate-500" data-date="2026-10-30" data-start="12:15" data-end="20:30">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2.5">
             <h4 class="font-bold text-slate-900 text-sm">🛫 César & Liz (20:25)</h4>
             <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">LATAM</span>
@@ -469,13 +681,219 @@
   </main>
 
   <script>
+    let currentDay = 1;
+    let mapInstance = null;
+    let mapLayerGroup = null;
+
+    // Coordenadas por día para el mapa interactivo (100% Client-Side con Leaflet)
+    const dayLocations = {
+      1: {
+        title: "Mapa Día 1: Aeropuerto SCL ➔ Hotel Ibis Budget ➔ Cenco Costanera",
+        points: [
+          { name: "1. Aeropuerto SCL", coords: [-33.3930, -70.7858] },
+          { name: "2. Hotel Ibis Budget (Manuel Montt 240)", coords: [-33.4287, -70.6186] },
+          { name: "3. Cenco Costanera", coords: [-33.4172, -70.6067] }
+        ]
+      },
+      2: {
+        title: "Mapa Día 2: Hotel ➔ Metro Pte. Alto ➔ Viña Concha y Toro ➔ Parque Safari",
+        points: [
+          { name: "1. Hotel Ibis Budget Providencia", coords: [-33.4287, -70.6186] },
+          { name: "2. Estación Plaza de Puente Alto (L4)", coords: [-33.6096, -70.5758] },
+          { name: "3. Viña Concha y Toro (Pirque)", coords: [-33.6423, -70.5772] },
+          { name: "4. Parque Safari Chile (Rancagua)", coords: [-34.1843, -70.8169] }
+        ]
+      },
+      3: {
+        title: "Mapa Día 3: San Cristóbal ➔ Bifurcación (UC / Estadio + Museo) ➔ Cena Fukasawa",
+        points: [
+          { name: "1. Hotel / Club Colombia Café", coords: [-33.4287, -70.6186] },
+          { name: "2. Teleférico Cerro San Cristóbal", coords: [-33.4193, -70.6148] },
+          { name: "3A. Campus San Joaquín UC (Graduación)", coords: [-33.4986, -70.6130] },
+          { name: "3B. Estadio Monumental Colo-Colo", coords: [-33.5067, -70.6059] },
+          { name: "4B. Museo Nacional Historia Natural", coords: [-33.4422, -70.6819] },
+          { name: "5. Cena en Fukasawa (Casacostanera)", coords: [-33.3995, -70.5978] }
+        ]
+      },
+      4: {
+        title: "Mapa Día 4: Cafeterías Manuel Montt ➔ Check-out Hotel ➔ SkyTeam Lounge SCL",
+        points: [
+          { name: "1. Casa Amaranta / Café Altura", coords: [-33.4265, -70.6189] },
+          { name: "2. Hotel Ibis Budget (Check-out 12:00)", coords: [-33.4287, -70.6186] },
+          { name: "3. SkyTeam Lounge (Aeropuerto SCL T2)", coords: [-33.3930, -70.7858] }
+        ]
+      }
+    };
+
     function showDay(dayNumber) {
+      currentDay = dayNumber;
       document.querySelectorAll('.day-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.day-tab').forEach(el => el.classList.remove('active'));
       document.getElementById('day-' + dayNumber).classList.remove('hidden');
       document.getElementById('tab-' + dayNumber).classList.add('active');
+      if (!document.getElementById('panel-map').classList.contains('hidden')) {
+        renderMapForDay(dayNumber);
+      }
+    }
+
+    function togglePanel(panelId) {
+      const panels = ['panel-map', 'panel-calc', 'panel-vault', 'panel-check'];
+      panels.forEach(id => {
+        const el = document.getElementById(id);
+        const btn = document.getElementById('btn-' + id);
+        if (id === panelId) {
+          el.classList.toggle('hidden');
+          btn.classList.toggle('active', !el.classList.contains('hidden'));
+          if (id === 'panel-map' && !el.classList.contains('hidden')) {
+            renderMapForDay(currentDay);
+          }
+        } else {
+          el.classList.add('hidden');
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    function openMapForDay(dayNumber) {
+      showDay(dayNumber);
+      const mapPanel = document.getElementById('panel-map');
+      if (mapPanel.classList.contains('hidden')) {
+        togglePanel('panel-map');
+      } else {
+        renderMapForDay(dayNumber);
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    function renderMapForDay(dayNumber) {
+      const data = dayLocations[dayNumber];
+      document.getElementById('map-day-title').textContent = data.title;
+      document.getElementById('map-legend').textContent = data.points.map(p => p.name).join('  •  ');
+
+      setTimeout(() => {
+        if (!mapInstance) {
+          mapInstance = L.map('map-container');
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+          }).addTo(mapInstance);
+          mapLayerGroup = L.layerGroup().addTo(mapInstance);
+        }
+        mapInstance.invalidateSize();
+        mapLayerGroup.clearLayers();
+
+        const latlngs = [];
+        data.points.forEach((pt, idx) => {
+          latlngs.push(pt.coords);
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="num-marker">${idx + 1}</div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          });
+          L.marker(pt.coords, { icon }).bindPopup(`<strong>${pt.name}</strong>`).addTo(mapLayerGroup);
+        });
+
+        L.polyline(latlngs, { color: '#0f172a', weight: 2.5, dashArray: '5, 6' }).addTo(mapLayerGroup);
+        mapInstance.fitBounds(L.latLngBounds(latlngs), { padding: [28, 28] });
+      }, 100);
+    }
+
+    // Conversor de Moneda (Tasa referencial: 1 PEN ≈ 255 CLP | 1 USD ≈ 950 CLP)
+    const RATE_PEN = 255;
+    const RATE_USD = 950;
+    function convertFromCLP() {
+      const clp = parseFloat(document.getElementById('input-clp').value);
+      if (isNaN(clp)) { document.getElementById('input-pen').value = ''; document.getElementById('input-usd').value = ''; return; }
+      document.getElementById('input-pen').value = (clp / RATE_PEN).toFixed(2);
+      document.getElementById('input-usd').value = (clp / RATE_USD).toFixed(2);
+    }
+    function convertFromPEN() {
+      const pen = parseFloat(document.getElementById('input-pen').value);
+      if (isNaN(pen)) { document.getElementById('input-clp').value = ''; document.getElementById('input-usd').value = ''; return; }
+      const clp = pen * RATE_PEN;
+      document.getElementById('input-clp').value = Math.round(clp);
+      document.getElementById('input-usd').value = (clp / RATE_USD).toFixed(2);
+    }
+    function convertFromUSD() {
+      const usd = parseFloat(document.getElementById('input-usd').value);
+      if (isNaN(usd)) { document.getElementById('input-clp').value = ''; document.getElementById('input-pen').value = ''; return; }
+      const clp = usd * RATE_USD;
+      document.getElementById('input-clp').value = Math.round(clp);
+      document.getElementById('input-pen').value = (clp / RATE_PEN).toFixed(2);
+    }
+    function setCLP(val) {
+      document.getElementById('input-clp').value = val;
+      convertFromCLP();
+    }
+
+    // Copiar al portapapeles
+    function copyText(text, msg) {
+      navigator.clipboard.writeText(text);
+      const toast = document.getElementById('toast');
+      toast.textContent = msg || 'Copiado al portapapeles';
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2200);
+    }
+
+    // Checklist persistente en el navegador (localStorage)
+    function loadChecks() {
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('chk-' + i);
+        if (el) el.checked = localStorage.getItem('chile_chk_' + i) === 'true';
+      }
+    }
+    function saveChecks() {
+      for (let i = 1; i <= 6; i++) {
+        const el = document.getElementById('chk-' + i);
+        if (el) localStorage.setItem('chile_chk_' + i, el.checked);
+      }
+    }
+
+    // Relojes en vivo Perú vs Chile + Detector de Actividad en Curso
+    function updateClocksAndLiveStatus() {
+      const now = new Date();
+      const peTime = now.toLocaleTimeString('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false });
+      const clTime = now.toLocaleTimeString('es-CL', { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false });
+      const clDate = now.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' }); // YYYY-MM-DD
+
+      document.getElementById('clock-pe').textContent = peTime;
+      document.getElementById('clock-cl').textContent = clTime;
+
+      document.querySelectorAll('.card[data-date]').forEach(card => {
+        const d = card.getAttribute('data-date');
+        const start = card.getAttribute('data-start');
+        const end = card.getAttribute('data-end');
+        if (d === clDate && clTime >= start && clTime <= end) {
+          card.classList.add('live-now');
+          if (!card.querySelector('.live-pill')) {
+            const pill = document.createElement('div');
+            pill.className = 'live-pill text-[10px] font-bold text-slate-900 bg-slate-200 inline-block px-2 py-0.5 rounded mb-1.5';
+            pill.textContent = '● EN CURSO AHORA';
+            card.prepend(pill);
+          }
+        } else {
+          card.classList.remove('live-now');
+        }
+      });
+    }
+
+    // Clima en vivo (Open-Meteo API gratuita sin API key)
+    async function fetchWeather() {
+      try {
+        const resScl = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-33.4489&longitude=-70.6693&current_weather=true');
+        const dataScl = await resScl.json();
+        if (dataScl.current_weather) document.getElementById('temp-scl').textContent = Math.round(dataScl.current_weather.temperature) + '°C';
+
+        const resRcg = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-34.1708&longitude=-70.7444&current_weather=true');
+        const dataRcg = await resRcg.json();
+        if (dataRcg.current_weather) document.getElementById('temp-rcg').textContent = Math.round(dataRcg.current_weather.temperature) + '°C';
+      } catch (e) {}
+    }
+
+    loadChecks();
+    updateClocksAndLiveStatus();
+    setInterval(updateClocksAndLiveStatus, 30000);
+    fetchWeather();
   </script>
 </body>
 </html>
