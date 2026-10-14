@@ -83,6 +83,10 @@
       border-radius: 0.75rem;
       z-index: 10;
     }
+    /* Estilo suave para las calles de OpenStreetMap */
+    .leaflet-tile-pane {
+      filter: saturate(0.85) contrast(1.02);
+    }
     .num-marker {
       background-color: #0f172a;
       color: #ffffff;
@@ -685,7 +689,7 @@
     let mapInstance = null;
     let mapLayerGroup = null;
 
-    // Coordenadas por día para el mapa interactivo (100% Client-Side con Leaflet)
+    // Coordenadas por día para el mapa interactivo (100% Client-Side con OpenStreetMap libre)
     const dayLocations = {
       1: {
         title: "Mapa Día 1: Aeropuerto SCL ➔ Hotel Ibis Budget ➔ Cenco Costanera",
@@ -773,7 +777,9 @@
       setTimeout(() => {
         if (!mapInstance) {
           mapInstance = L.map('map-container');
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          // Servidor oficial OpenStreetMap (Libre y sin API Key)
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
           }).addTo(mapInstance);
           mapLayerGroup = L.layerGroup().addTo(mapInstance);
